@@ -37,6 +37,17 @@
     (e.g. Kvaser.CANDrivers). `update` only works once the package is published,
     because it pulls the existing manifest from winget-pkgs to bump it.
 
+.PARAMETER GenerateManifests
+    Write a full winget manifest set (installer + locale + version YAML) for each
+    target version into manifests\<l>\<Publisher>\<Package>\<version>\. Downloads
+    each installer, verifies its MD5, and embeds the SHA256. Combine with -All to
+    generate every version. (See note: winget-pkgs wants current versions, not
+    full history.)
+
+.PARAMETER Architecture
+    Installer architecture written into generated manifests (x64/x86/arm64).
+    Default x86. Confirm what Kvaser actually ships before submitting.
+
 .PARAMETER Run
     Actually invoke wingetcreate instead of only printing the command.
     Implies -Download is not required (wingetcreate downloads + hashes itself).
@@ -51,15 +62,25 @@
 
 .EXAMPLE
     .\Prepare-KvaserWinget.ps1 -Run
-    # Bump an existing package: wingetcreate update Kvaser.Drivers --version <v> --urls <url>
+    # Bump an existing package: wingetcreate update Kvaser.CANDrivers --version <v> --urls <url>
+
+.EXAMPLE
+    .\Prepare-KvaserWinget.ps1 -All -GenerateManifests
+    # Build a full winget manifest (3 YAMLs) for EVERY version under manifests\.
+    # Downloads each installer, verifies MD5, and writes the SHA256 into the
+    # installer manifest. NOTE: winget-pkgs does not want a package's whole
+    # history -- this is for local testing/archiving, not bulk submission.
 #>
 [CmdletBinding()]
 param(
-    [string]$DownloadId       = '1011691573',
-    [string]$PackageIdentifier = 'Kvaser.Drivers',
+    [string]$DownloadId        = '1011691573',
+    [string]$PackageIdentifier = 'Kvaser.CANDrivers',
+    [ValidateSet('x64', 'x86', 'arm64')]
+    [string]$Architecture      = 'x86',
     [switch]$All,
     [switch]$Download,
     [switch]$Create,
+    [switch]$GenerateManifests,
     [switch]$Run
 )
 
@@ -146,7 +167,9 @@ Write-Host "    (URLs: Import-Csv installers.csv | Select -Expand Url)"
 
 # --- Select target version(s) ----------------------------------------------
 $latest = $items[-1]
-$targets = if ($All) { $items } else { @($latest) }
+# Wrap in @() so a single target stays an array (PowerShell unwraps a
+# one-element `if` result to a scalar, which then has no .Count).
+$targets = @(if ($All) { $items } else { $latest })
 
 Write-Host ""
 Write-Host ("==> Latest version: {0}" -f $latest.Version) -ForegroundColor Yellow
@@ -175,6 +198,76 @@ function Get-InstallerHash($item) {
         Write-Warning "No published MD5 found for $($item.File); skipping integrity check."
     }
     (Get-FileHash -Path $dest -Algorithm SHA256).Hash
+}
+
+# --- Write a full manifest set for one version -----------------------------
+# winget-pkgs layout: manifests/<lower first letter of id>/<Publisher>/<Package>/<version>/
+# where Publisher/Package come from splitting the PackageIdentifier on '.'.
+$manifestVersion = '1.12.0'
+function Write-Utf8NoBom($path, $text) {
+    [System.IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding $false))
+}
+function New-ManifestSet($item, $sha) {
+    # Build the 'o-with-umlaut' explicitly: a literal in this .ps1 would be
+    # mis-decoded by Windows PowerShell 5.1 (reads source as ANSI, not UTF-8).
+    $copyright = "Copyright (C) Kvaser AB, M$([char]0xF6)lndal, Sweden"
+    $idParts = $PackageIdentifier -split '\.'
+    $dir = Join-Path $here (Join-Path 'manifests' (Join-Path $PackageIdentifier.Substring(0,1).ToLower() ($idParts -join [IO.Path]::DirectorySeparatorChar)))
+    $dir = Join-Path $dir $item.Version
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    $base = Join-Path $dir $PackageIdentifier
+
+    Write-Utf8NoBom "$base.installer.yaml" @"
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.installer.$manifestVersion.schema.json
+PackageIdentifier: $PackageIdentifier
+PackageVersion: "$($item.Version)"
+InstallerType: nullsoft
+Installers:
+- Architecture: $Architecture
+  InstallerUrl: $($item.Url)
+  InstallerSha256: $sha
+ManifestType: installer
+ManifestVersion: $manifestVersion
+"@
+
+    Write-Utf8NoBom "$base.locale.en-US.yaml" @"
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.defaultLocale.$manifestVersion.schema.json
+PackageIdentifier: $PackageIdentifier
+PackageVersion: "$($item.Version)"
+PackageLocale: en-US
+Publisher: Kvaser AB
+PublisherUrl: https://kvaser.com/
+PackageName: Kvaser CAN Drivers
+PackageUrl: https://kvaser.com/download/
+License: Proprietary
+LicenseUrl: https://kvaser.com/canlib-webhelp/page_license_and_copyright.htm
+Copyright: $copyright
+ShortDescription: Driver setup program for all Kvaser hardware
+ManifestType: defaultLocale
+ManifestVersion: $manifestVersion
+"@
+
+    Write-Utf8NoBom "$base.yaml" @"
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.version.$manifestVersion.schema.json
+PackageIdentifier: $PackageIdentifier
+PackageVersion: "$($item.Version)"
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: $manifestVersion
+"@
+    Write-Host "    manifest -> $dir" -ForegroundColor Green
+}
+
+# --- Generate full manifests (-GenerateManifests) --------------------------
+if ($GenerateManifests) {
+    Write-Host ("==> Generating manifests ({0} version(s), Architecture={1}):" -f $targets.Count, $Architecture) -ForegroundColor Cyan
+    foreach ($t in $targets) {
+        $sha = Get-InstallerHash $t   # always downloads + verifies MD5 + hashes
+        New-ManifestSet $t $sha
+    }
+    Write-Host ""
+    Write-Host "Done. Validate with: winget validate <manifest-folder>" -ForegroundColor Green
+    return
 }
 
 # --- Emit / run wingetcreate ------------------------------------------------
@@ -212,4 +305,4 @@ foreach ($t in $targets) {
 }
 
 Write-Host ""
-Write-Host "Done. Tips: -Create (first publish, 'new') vs default 'update'; -All to list every version; -Download to verify MD5 + hash; -Run to execute." -ForegroundColor Green
+Write-Host "Done. Tips: -GenerateManifests (write YAMLs; add -All for every version); -Create vs default 'update'; -Download to verify MD5 + hash; -Run to execute." -ForegroundColor Green

@@ -47,6 +47,13 @@ locally by `wingetcreate` and submitted to
 # and compute its SHA256:
 .\Prepare-KvaserWinget.ps1 -Download
 
+# Generate a full manifest set (installer + locale + version YAML) for the
+# latest version under manifests\ (downloads + verifies MD5 + writes SHA256):
+.\Prepare-KvaserWinget.ps1 -GenerateManifests
+
+# Generate manifests for EVERY version (downloads all installers, ~1 GB):
+.\Prepare-KvaserWinget.ps1 -All -GenerateManifests
+
 # FIRST-TIME publish of a new package (emits `wingetcreate new`):
 .\Prepare-KvaserWinget.ps1 -Create -Run
 
@@ -62,10 +69,16 @@ locally by `wingetcreate` and submitted to
 | `-PackageIdentifier` | winget PackageIdentifier (default `Kvaser.Drivers`). |
 | `-All` | Operate on every version, not just the latest. |
 | `-Download` | Download the installer(s), verify MD5, compute SHA256. |
+| `-GenerateManifests` | Write a full manifest set (installer/locale/version YAML) per version under `manifests\`. Combine with `-All` for every version. |
+| `-Architecture` | Arch written into generated manifests (`x64`/`x86`/`arm64`, default `x86`). |
 | `-Create` | Emit `wingetcreate new` (first publish) instead of `update`. |
 | `-Run` | Actually invoke `wingetcreate` instead of only printing the command. |
 
 `-All` cannot be combined with `-Run` or `-Create` (you publish one version at a time).
+
+> **Heads-up:** winget-pkgs expects the *current* version (and new ones as they ship), **not** a
+> package's entire history. `-All -GenerateManifests` is for local testing/archiving; don't submit
+> 47 historical versions in one PR — moderators will reject it.
 
 ### MD5 vs SHA256
 
