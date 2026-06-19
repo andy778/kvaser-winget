@@ -10,6 +10,10 @@ urls.txt
 # Not redistributed here so it always matches Microsoft's upstream copy.
 SandboxTest.ps1
 
+# Generated winget manifests. These are produced locally and submitted to
+# microsoft/winget-pkgs; they are not part of this tooling repo.
+manifests/
+
 # wingetcreate scratch output
 *.validation.txt
 

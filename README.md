@@ -20,8 +20,11 @@ that page, verifies each installer against Kvaser's published **MD5**, and prepa
 | Path | What it is |
 |------|------------|
 | [`Prepare-KvaserWinget.ps1`](Prepare-KvaserWinget.ps1) | Scrapes the Kvaser download page, verifies MD5, emits/runs `wingetcreate`. |
-| [`manifests/`](manifests/) | The winget manifest (`Kvaser.CANDrivers`, version 5.52.559). |
 | [`installers.csv`](installers.csv) | Snapshot of every version found: `Version,File,Url,Md5`. |
+
+The generated winget manifest (`manifests/`) is **not tracked in this repo** — it is produced
+locally by `wingetcreate` and submitted to
+[microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs), which is its real home.
 
 ## Requirements
 
@@ -93,7 +96,7 @@ and diffs the installed-programs table to confirm success.
 
 ## Submitting to winget-pkgs
 
-The manifests under `manifests/` can be submitted to
+The manifest generated under `manifests/` (not tracked here) is submitted to
 [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs):
 
 ```powershell
@@ -102,8 +105,7 @@ wingetcreate submit "manifests\k\Kvaser\CANDrivers\5.52.559" --token <github-pat
 
 ## License
 
-- **This repository** (the `Prepare-KvaserWinget.ps1` script, manifests, and docs):
-  [MIT](LICENSE).
+- **This repository** (the `Prepare-KvaserWinget.ps1` script and docs): [MIT](LICENSE).
 - **`SandboxTest.ps1`**: © Microsoft, MIT — from
   [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs); not included here.
 - **Kvaser drivers**: proprietary, © Kvaser AB, Mölndal, Sweden —
