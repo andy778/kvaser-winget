@@ -1,0 +1,20 @@
+# Downloaded installers (large binaries, fetched on demand by the script)
+*.exe
+
+# Transient scrape / temp artifacts
+page.html
+urls.txt
+*.log
+
+# Third-party helper, downloaded on demand (see README "Testing in Windows Sandbox").
+# Not redistributed here so it always matches Microsoft's upstream copy.
+SandboxTest.ps1
+
+# wingetcreate scratch output
+*.validation.txt
+
+# Editor / tooling
+.claude/
+.vs/
+.vscode/
+*.user

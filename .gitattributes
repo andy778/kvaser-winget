@@ -1,0 +1,7 @@
+# Normalize line endings: store as LF in the repo, check out native on each OS.
+* text=auto
+
+# Keep these as-is regardless of platform.
+*.ps1   text eol=crlf
+*.yaml  text eol=lf
+*.md    text eol=lf

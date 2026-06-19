@@ -1,0 +1,12 @@
+# Created using wingetcreate 1.12.8.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: Kvaser.CANDrivers
+PackageVersion: "5.52.559"
+InstallerType: nullsoft
+Installers:
+- Architecture: x86
+  InstallerUrl: https://pim.kvaser.com/var/assets/Product_Resources/7330130980013/5.52.559/kvaser_drivers_setup-5.52.559.exe
+  InstallerSha256: 6A4F5F649B9E65E25DE40CA233B92ADB4A673E9A117946267DD3B5AE2128C1BB
+ManifestType: installer
+ManifestVersion: 1.12.0
