@@ -20,11 +20,12 @@ that page, verifies each installer against Kvaser's published **MD5**, and prepa
 | Path | What it is |
 |------|------------|
 | [`Prepare-KvaserWinget.ps1`](Prepare-KvaserWinget.ps1) | Scrapes the Kvaser download page, verifies MD5, emits/runs `wingetcreate`. |
-| [`installers.csv`](installers.csv) | Snapshot of every version found: `Version,File,Url,Md5`. |
 
-The generated winget manifest (`manifests/`) is **not tracked in this repo** — it is produced
-locally by `wingetcreate` and submitted to
-[microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs), which is its real home.
+Generated locally and **not tracked in this repo**:
+
+- `installers.csv` — snapshot of every version found (`Version,File,Url,Md5`), written on each run.
+- `manifests/` — the winget manifest, produced by the script / `wingetcreate` and submitted to
+  [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs), which is its real home.
 
 ## Requirements
 

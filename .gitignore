@@ -6,6 +6,9 @@ page.html
 urls.txt
 *.log
 
+# Generated data (produced by Prepare-KvaserWinget.ps1)
+*.csv
+
 # Third-party helper, downloaded on demand (see README "Testing in Windows Sandbox").
 # Not redistributed here so it always matches Microsoft's upstream copy.
 SandboxTest.ps1
