@@ -1,5 +1,7 @@
 # Kvaser Drivers — winget packaging
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/andy778/kvaser-winget/badge)](https://scorecard.dev/viewer/?uri=github.com/andy778/kvaser-winget)
+
 Tooling and [WinGet](https://learn.microsoft.com/windows/package-manager/) manifests for
 packaging the **Kvaser Drivers for Windows** (CANlib driver setup) so they can be installed with:
 
