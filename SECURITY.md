@@ -17,7 +17,7 @@ Kvaser driver vulnerabilities → [kvaser.com/contact](https://kvaser.com/contac
 
 Do not open a public issue.
 
-Use [GitHub private vulnerability reporting](https://github.com/andy778/kvaser-winget/security/advisories/new) or email **andreas.back778@gmail.com** (subject: `[kvaser-winget] Security`).
+Use [GitHub private vulnerability reporting](https://github.com/andy778/kvaser-winget/security/advisories/new) 
 
 Include: what, where (file/line), steps to reproduce, impact.
 
